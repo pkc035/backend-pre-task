@@ -1,9 +1,10 @@
-from rest_framework             import viewsets
-from rest_framework.exceptions  import ValidationError as DRFValidationError
-from rest_framework.pagination  import PageNumberPagination
-from apps.contacts.models       import Contact, Label
-from apps.contacts.services     import create_contact, update_contact
-from .serializers               import ContactSerializer, LabelSerializer
+from rest_framework                 import viewsets, filters
+from rest_framework.exceptions      import ValidationError as DRFValidationError
+from rest_framework.pagination      import PageNumberPagination
+from django_filters.rest_framework  import DjangoFilterBackend
+from apps.contacts.models           import Contact, Label
+from apps.contacts.services         import create_contact, update_contact
+from .serializers                   import ContactSerializer, LabelSerializer
 
 class ContactPagination(PageNumberPagination):
     """
@@ -15,9 +16,12 @@ class ContactViewSet(viewsets.ModelViewSet):
     """
     연락처 모델에 대한 CRUD 작업을 처리하는 뷰셋입니다.
     """
-    queryset = Contact.objects.all().order_by('-created_at')
+    queryset = Contact.objects.all()
     serializer_class = ContactSerializer
     pagination_class = ContactPagination
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    ordering_fields = ['name', 'email', 'phone_number', 'created_at']
+    ordering = ['-created_at']
 
     def perform_create(self, serializer):
         """
